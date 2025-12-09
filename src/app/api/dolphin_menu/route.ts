@@ -3,23 +3,13 @@ import { spawn } from 'child_process';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { filePath } = body;
-
-    if (!filePath) {
-      return NextResponse.json(
-        { success: false, error: 'File path is required' },
-        { status: 400 }
-      );
-    }
-
-    // Execute the Dolphin emulator command
+    // Execute the Dolphin emulator command with -n flag to open Wii menu
     // Using spawn with detached: true to run in background
     const child = spawn('flatpak', [
       'run',
       'org.DolphinEmu.dolphin-emu',
-      '-e',
-      filePath
+      '-n',
+      '0000000100000002'
     ], {
       detached: true,
       stdio: 'ignore' // Ignore stdio so it doesn't block
@@ -28,12 +18,11 @@ export async function POST(request: Request) {
     // Unref the child process so the parent can exit independently
     child.unref();
 
-    console.log(`Launching Dolphin emulator with game: ${filePath}`);
+    console.log('Launching Dolphin emulator to menu');
     
     return NextResponse.json({ 
       success: true, 
-      message: `Game launched successfully`,
-      filePath 
+      message: `Dolphin emulator launched successfully`
     });
   } catch (error) {
     console.error('Error launching Dolphin emulator:', error);

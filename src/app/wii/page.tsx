@@ -1,5 +1,7 @@
 import { scanFiles } from '../../lib/games-scanner';
 import { GameCard } from './GameCard';
+import { DolphinMenuCard } from './DolphinMenuCard';
+import { WiiMenuCard } from './WiiMenuCard';
 
 export default function WiiPage() {
     const files = scanFiles();
@@ -16,6 +18,10 @@ export default function WiiPage() {
                    - xl: 4 columns (Large Desktop)
                 */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {/* Standalone Dolphin Menu Card */}
+                    <DolphinMenuCard />
+                    {/* Wii Menu Card */}
+                    <WiiMenuCard />
                     {files.map((file, i) => (
                         <div key={file.gameId || i} className="w-full flex items-center justify-center">
                             <GameCard
