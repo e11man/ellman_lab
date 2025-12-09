@@ -67,3 +67,4 @@ export async function GET(request: NextRequest) {
         return new NextResponse(file as any, { status: 200, headers: head });
     }
 }
+

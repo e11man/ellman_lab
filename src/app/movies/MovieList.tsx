@@ -42,3 +42,4 @@ export function MovieList({ movies }: MovieListProps) {
         </div>
     );
 }
+

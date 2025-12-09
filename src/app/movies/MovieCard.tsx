@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from 'react';
 import { AnimatedPromoCard } from "@/components/ui/promo-card";
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +15,44 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ title, subtitle, buttonText, fileName, moviePath, isPlaying = false, onPlayClick }: MovieCardProps) {
+    const [posterUrl, setPosterUrl] = useState<string | null>(null);
+    const [isLoadingPoster, setIsLoadingPoster] = useState(true);
+
+    useEffect(() => {
+        // Extract movie title and year from fileName if possible
+        // Try to extract year from filename (e.g., "Movie Name (2024).mp4" or "Movie Name 2024.mp4")
+        const yearMatch = title.match(/\((\d{4})\)|(\d{4})/);
+        const year = yearMatch ? (yearMatch[1] || yearMatch[2]) : null;
+        
+        // Clean title - remove year and extension-like patterns
+        let cleanTitle = title.replace(/\(\d{4}\)|\d{4}/g, '').trim();
+        
+        // Fetch movie poster
+        const fetchPoster = async () => {
+            try {
+                setIsLoadingPoster(true);
+                const params = new URLSearchParams({ title: cleanTitle });
+                if (year) {
+                    params.append('year', year);
+                }
+                
+                const response = await fetch(`/api/movies/poster?${params.toString()}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.posterUrl) {
+                        setPosterUrl(data.posterUrl);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching movie poster:', error);
+            } finally {
+                setIsLoadingPoster(false);
+            }
+        };
+
+        fetchPoster();
+    }, [title]);
+
     const handlePlayClick = (e: React.MouseEvent) => {
         e.preventDefault();
         if (onPlayClick) {
@@ -27,8 +66,8 @@ export function MovieCard({ title, subtitle, buttonText, fileName, moviePath, is
         }
     };
 
-    // Use a placeholder image or generate one from the movie name
-    const imageSrc = `/api/movies/thumbnail?file=${encodeURIComponent(fileName)}`;
+    // Use movie poster if available, otherwise fall back to thumbnail
+    const imageSrc = posterUrl || `/api/movies/thumbnail?file=${encodeURIComponent(fileName)}`;
 
     return (
         <>
@@ -76,3 +115,4 @@ export function MovieCard({ title, subtitle, buttonText, fileName, moviePath, is
         </>
     );
 }
+
