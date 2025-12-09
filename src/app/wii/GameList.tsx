@@ -82,22 +82,53 @@ export function GameList({ files }: GameListProps) {
         }
     };
 
+    // Check if a menu is playing
+    const isWiiMenuPlaying = playingGamePath === 'wii_menu';
+    const isDolphinMenuPlaying = playingGamePath === 'dolphin_menu';
+    const isMenuPlaying = isWiiMenuPlaying || isDolphinMenuPlaying;
+
     // Filter files: if a game is playing, only show that game
-    const displayedFiles = playingGamePath 
+    const displayedFiles = playingGamePath && !isMenuPlaying
         ? files.filter(file => file.filePath === playingGamePath)
         : files;
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {/* Only show menu cards when no game is playing */}
-            {!playingGamePath && (
+            {/* Show menu cards when no game is playing, or show only the playing menu */}
+            {!playingGamePath ? (
                 <>
                     {/* Standalone Dolphin Menu Card */}
-                    <DolphinMenuCard />
+                    <DolphinMenuCard 
+                        isPlaying={false}
+                        onPlayClick={handlePlayClick}
+                        onQuitClick={handleQuitClick}
+                    />
                     {/* Wii Menu Card */}
-                    <WiiMenuCard />
+                    <WiiMenuCard 
+                        isPlaying={false}
+                        onPlayClick={handlePlayClick}
+                        onQuitClick={handleQuitClick}
+                    />
                 </>
-            )}
+            ) : isMenuPlaying ? (
+                <>
+                    {/* Show only the playing menu card */}
+                    {isDolphinMenuPlaying && (
+                        <DolphinMenuCard 
+                            isPlaying={true}
+                            onPlayClick={handlePlayClick}
+                            onQuitClick={handleQuitClick}
+                        />
+                    )}
+                    {isWiiMenuPlaying && (
+                        <WiiMenuCard 
+                            isPlaying={true}
+                            onPlayClick={handlePlayClick}
+                            onQuitClick={handleQuitClick}
+                        />
+                    )}
+                </>
+            ) : null}
             {displayedFiles.map((file, i) => (
                 <div key={file.gameId || i} className="w-full flex items-center justify-center">
                     <GameCard

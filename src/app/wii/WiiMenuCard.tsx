@@ -1,9 +1,15 @@
 "use client";
 
-import { AnimatedPromoCard } from '@/components/ui/promo-card';
+import { GameCard } from './GameCard';
 
-export function WiiMenuCard() {
-    const handleWiiMenuClick = async (e: React.MouseEvent) => {
+interface WiiMenuCardProps {
+    isPlaying?: boolean;
+    onPlayClick?: (filePath: string) => void;
+    onQuitClick?: () => void;
+}
+
+export function WiiMenuCard({ isPlaying = false, onPlayClick, onQuitClick }: WiiMenuCardProps) {
+    const handlePlayClick = async (filePath: string) => {
         try {
             const response = await fetch('/api/dolphin_menu', {
                 method: 'POST',
@@ -12,7 +18,9 @@ export function WiiMenuCard() {
                 },
             });
             const data = await response.json();
-            console.log('API response:', data);
+            if (data.success && onPlayClick) {
+                onPlayClick(filePath);
+            }
         } catch (error) {
             console.error('Error calling dolphin_menu:', error);
         }
@@ -20,13 +28,15 @@ export function WiiMenuCard() {
 
     return (
         <div className="w-full flex items-center justify-center">
-            <AnimatedPromoCard
+            <GameCard
                 imageSrc="https://art.gametdb.com/wii/cover/US/RWIE01.png"
                 title="Wii Menu"
                 subtitle="Launch System Menu"
                 buttonText="Open"
-                href="#"
-                onButtonClick={handleWiiMenuClick}
+                filePath="wii_menu"
+                isPlaying={isPlaying}
+                onPlayClick={handlePlayClick}
+                onQuitClick={onQuitClick}
             />
         </div>
     );
