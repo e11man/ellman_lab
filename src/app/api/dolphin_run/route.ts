@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       success: true, 
       message: `Game launched successfully`,
-      filePath 
+      filePath
     });
   } catch (error) {
     console.error('Error launching Dolphin emulator:', error);
