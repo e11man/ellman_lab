@@ -14,6 +14,7 @@ const getContentType = (fileName: string): string => {
         '.mkv': 'video/x-matroska',
         '.webm': 'video/webm',
         '.m4v': 'video/x-m4v',
+        '.ts': 'video/mp2t',
     };
     return mimeTypes[ext] || 'video/mp4';
 };

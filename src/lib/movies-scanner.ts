@@ -13,7 +13,7 @@ export function scanMovies() {
         const files = fs.readdirSync(TARGET_DIRECTORY);
 
         // Filter out system files and only include video files
-        const videoExtensions = ['.mp4', '.avi', '.mov', '.mkv', '.webm', '.m4v'];
+        const videoExtensions = ['.mp4', '.avi', '.mov', '.mkv', '.webm', '.m4v', '.ts'];
         const filteredFiles = files.filter(file => {
             if (file === '.DS_Store') return false;
             const ext = path.extname(file).toLowerCase();

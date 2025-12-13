@@ -1,14 +1,25 @@
 import json
 import sys
+import argparse
 from pathlib import Path
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-TARGET_URL = "https://www.cineby.gd/movie/798645?play=true"
-
 def main():
+    parser = argparse.ArgumentParser(description="Open a Cineby URL and capture M3U8 playlist URL")
+    parser.add_argument("url", help="The Cineby URL to open (e.g., https://www.cineby.gd/movie/603)")
+    args = parser.parse_args()
+    
+    # Ensure ?play=true is in the URL
+    target_url = args.url
+    if "?play=true" not in target_url and "&play=true" not in target_url:
+        if "?" in target_url:
+            target_url += "&play=true"
+        else:
+            target_url += "?play=true"
+
     profile_dir = Path.cwd() / ".chrome-lite-profile"
     profile_dir.mkdir(parents=True, exist_ok=True)
 
@@ -29,13 +40,14 @@ def main():
     })
 
     driver = webdriver.Chrome(options=options)
-    driver.get(TARGET_URL)
+    driver.get(target_url)
 
     # Print status to stderr so stdout remains clean for the result
-    print(f"Browser opened. Monitoring URL: {TARGET_URL}", file=sys.stderr)
+    print(f"Browser opened. Monitoring URL: {target_url}", file=sys.stderr)
     print("Monitoring network traffic for M3U8 playlists...", file=sys.stderr)
 
     has_pressed_play = False
+    captured_headers = {}
     
     try:
         while True:
@@ -52,20 +64,37 @@ def main():
                     
                     if method == "Network.requestWillBeSent":
                         params = message.get("params", {})
-                        request_url = params.get("request", {}).get("url", "")
+                        request = params.get("request", {})
+                        request_url = request.get("url", "")
                         
+                        # Capture headers from M3U8 requests
                         if ".m3u8" in request_url:
-                            # Print only the URL to stdout
-                            print(request_url)
+                            captured_headers = request.get("headers", {})
+                            
+                            # Get cookies from the browser
+                            cookies = driver.get_cookies()
+                            cookie_string = "; ".join([f"{c['name']}={c['value']}" for c in cookies])
+                            
+                            # Output JSON with all needed info
+                            output = {
+                                "m3u8_url": request_url,
+                                "cookies": cookie_string,
+                                "headers": {
+                                    "User-Agent": captured_headers.get("User-Agent", ""),
+                                    "Referer": captured_headers.get("Referer", target_url),
+                                    "Origin": captured_headers.get("Origin", "https://www.cineby.gd"),
+                                }
+                            }
+                            print(json.dumps(output))
                             return # Exit main(), prompting cleanup
                             
             except Exception:
                 break
             
             # blocked redirects often change the url
-            if current_url.split('?')[0] != TARGET_URL.split('?')[0]:
+            if current_url.split('?')[0] != target_url.split('?')[0]:
                  print(f"URL changed to {current_url}. Redirecting back...", file=sys.stderr)
-                 driver.get(TARGET_URL)
+                 driver.get(target_url)
                  has_pressed_play = False
                  time.sleep(2) 
             
@@ -89,3 +118,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -44,3 +44,9 @@ next-env.d.ts
 
 # database
 game-session.db
+
+# browser profile cache (playwright/selenium)
+search/chrome-lite-profile/
+
+# python virtual environment
+search/venv/
